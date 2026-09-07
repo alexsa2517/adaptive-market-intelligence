@@ -33,6 +33,78 @@ Both observations were Bull / High Volatility, but remained below the locked 0.6
 
 The forward monitor is implemented in `src/forward_validation.py`. The forward evidence remains separate from model training and is intended to accumulate future observations without look-ahead or parameter drift.
 
+## V2 External Information Research — ACTIVE DEVELOPMENT
+
+V2 is a **separate research track**. It does not change the locked V1.12 forward model.
+
+### V2 feature groups
+
+**Market / structure**
+- Returns: 1d, 5d, 20d
+- Volatility: 10d, 20d, volatility ratio
+- Momentum: 10d, 20d
+- SMA/EMA gaps
+- RSI
+- Range and volume structure
+- Trend 21/50
+
+**Macro / cross-asset**
+- DXY returns
+- S&P 500 returns
+- Nasdaq returns
+- VIX level/change
+- US 10Y yield change
+- Gold and oil returns
+- Fed Funds Rate
+- CPI YoY
+- Unemployment
+- Financial-conditions proxy
+- Risk-on/risk-off score
+
+**News / sentiment**
+- News count 24h / 7d
+- Positive / negative / neutral ratios
+- News sentiment score/change
+- Bitcoin news share
+- Macro news share
+- Breaking-news flag
+- Positive/negative news spikes
+
+Full specification: `docs/v2_feature_spec.md`.
+
+### V2 research rule
+
+External information will be introduced progressively:
+
+```text
+V1 Market baseline
+      ↓
+V2A Market + Macro
+      ↓
+V2B Market + News
+      ↓
+V2C Market + Macro + News
+      ↓
+Same walk-forward protocol
+      ↓
+Cost sensitivity + block bootstrap + regime analysis
+      ↓
+Untouched holdout
+      ↓
+Promotion decision
+```
+
+A V2 feature is not accepted because it improves training accuracy. It must improve out-of-sample evidence without introducing look-ahead, excessive turnover, unstable performance, or dependence on unrealistic costs.
+
+### Data-leakage rules for news and macro
+
+- News is timestamped by publication time.
+- A news item published after the prediction timestamp cannot affect that prediction.
+- Macro observations use release/availability time, not just the economic reference period.
+- Forward outcomes never become features.
+- Feature selection is performed only inside training/validation data.
+- The V1.12 forward holdout remains frozen while V2 is researched.
+
 ## Data integrity
 
 The feature pipeline explicitly preserves an unknown final next-day target as `NaN` and removes that row instead of silently converting it to class `0`. This prevents an invalid final-label artifact from entering model evaluation.
@@ -61,9 +133,11 @@ A failed gate means the system returns to research. The project does not force a
 
 Use `notebooks/01_v1_baseline.ipynb` as the starting research notebook. Experiments may be performed in Colab without committing every intermediate result to GitHub. Only validated research code and reproducible methodology should be promoted to the repository.
 
+V2 research scaffold: `notebooks/04_v2_external_data_research.py`.
+
 ## Roadmap
 
-V1 Market Baseline → V2 Advanced Features → V3 Multi-Horizon Forecast → V4 News Intelligence → V5 Sentiment/NLP → V6 On-chain → V7 Anomaly/Early Warning → V8 Ensemble/AI Router → V9 Paper Trading 24/7 → V10 Live Trading Gate
+V1 Market Baseline → V2A Macro → V2B News → V2C Macro + News → V3 Multi-Horizon Forecast → V5 Sentiment/NLP → V6 On-chain → V7 Anomaly/Early Warning → V8 Ensemble/AI Router → V9 Paper Trading 24/7 → V10 Live Trading Gate
 
 ## Disclaimer
 
