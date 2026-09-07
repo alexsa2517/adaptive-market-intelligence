@@ -4,8 +4,26 @@ import numpy as np
 import pandas as pd
 
 
+FEATURE_COLUMNS = [
+    "return_1d",
+    "return_5d",
+    "volatility_10d",
+    "momentum_10d",
+    "sma_7",
+    "sma_21",
+    "ema_12",
+    "ema_26",
+    "rsi_14",
+    "volume_change_1d",
+]
+
+
 def build_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Build leakage-safe daily features and next-day direction target."""
+    """Build leakage-safe daily features and a valid next-day direction target.
+
+    All features use information available on the current trading day only.
+    The final row is dropped because its next-day target is unknown.
+    """
     out = df.copy()
     close = out["Close"]
     volume = out["Volume"]
@@ -26,12 +44,13 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     out["rsi_14"] = 100 - (100 / (1 + rs))
     out["volume_change_1d"] = volume.pct_change(1)
 
-    # Target is tomorrow's direction; current-day features only.
-    out["target_next_day_up"] = (close.shift(-1) > close).astype(int)
-    return out.replace([np.inf, -np.inf], np.nan).dropna()
+    # Keep the unknown final target as NaN instead of silently converting it to 0.
+    future_close = close.shift(-1)
+    out["target_next_day_up"] = np.where(
+        future_close.isna(),
+        np.nan,
+        (future_close > close).astype(int),
+    )
 
-
-FEATURE_COLUMNS = [
-    "return_1d", "return_5d", "volatility_10d", "momentum_10d",
-    "sma_7", "sma_21", "ema_12", "ema_26", "rsi_14", "volume_change_1d"
-]
+    out = out.replace([np.inf, -np.inf], np.nan)
+    return out.dropna(subset=FEATURE_COLUMNS + ["target_next_day_up"])
