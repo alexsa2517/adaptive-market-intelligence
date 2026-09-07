@@ -4,27 +4,34 @@
 
 An evidence-first market intelligence and forecasting system. The project is designed to test whether a measurable predictive edge exists before any real-money trading is allowed.
 
-## Current Research Status — V1.10.8
+## Current Research Status — V1.12 Forward Validation
 
-The current research candidate is an XGBoost-based daily BTC direction model using Feature Set C, walk-forward threshold selection, and a Moderate market-regime filter.
+The current research candidate is an XGBoost-based daily BTC direction model using Feature Set C and a locked Moderate market-regime filter. The final untouched holdout (2026-05-08 to 2026-09-04) produced +20.43% return, -1.97% max drawdown, Sharpe 3.09 and profit factor 5.61 under the base cost assumption. V1.11 robustness scored 6/7 and was classified **PROMISING — MORE VALIDATION REQUIRED**, not proven. The main weakness was a very small number of active holdout days and failed outlier robustness.
 
-### Locked research configuration
+### V1.12 locked forward configuration
 
-- XGBoost classifier
+- Locked model: XGBoost configuration from V1.10.9.1
+- Locked training window: 2021-07-23 to 2024-11-03 (1,200 rows)
 - Feature Set C: returns, volatility, momentum, SMA/EMA gaps, RSI, volume, trend and range features
-- Walk-forward structure: 1,200-day train / 300-day validation / 250-day test
-- Candidate thresholds: 0.50, 0.55, 0.60, 0.65, 0.70
+- Probability threshold: 0.60
 - Moderate regime: baseline signal AND (Bull OR High Volatility)
 - Bull regime: price > 50-day SMA by more than 5%
 - Bear regime: price < 50-day SMA by more than 5%
-- Volatility threshold: median 20-day volatility calculated from the training window only
+- Locked volatility threshold: 0.026935
 - Base transaction cost assumption: 0.10% fee + 0.05% slippage per position change
+- **No retraining with forward observations**
+- **No threshold or rule tuning from forward outcomes**
 
-### V1.10.8 research results
+### Forward validation status
 
-The Moderate regime candidate showed positive aggregate backtest performance under the base cost assumption and remained positive across the tested cost-sensitivity scenarios. However, this is **not proof of a future trading edge**. The regime hypothesis was developed through exploratory research and therefore requires an untouched holdout evaluation before it can be considered validated.
+Forward observations began after the untouched holdout. The first two observations currently recorded are:
 
-The current research process has passed a final methodology/data-alignment audit. The untouched final holdout is reserved separately and must not be used for parameter selection.
+- 2026-09-05: `prob_up` 0.423468 → no signal
+- 2026-09-07: `prob_up` 0.433182 → no signal
+
+Both observations were Bull / High Volatility, but remained below the locked 0.60 probability threshold. They are recorded as forward evidence and must not be used to modify the model.
+
+The forward monitor is implemented in `src/forward_validation.py`. The forward evidence remains separate from model training and is intended to accumulate future observations without look-ahead or parameter drift.
 
 ## Data integrity
 
@@ -41,9 +48,9 @@ Robustness + Cost Sensitivity
   ↓
 Final Untouched Holdout
   ↓
-PASS → Paper Trading
+Forward Validation / Paper Trading
   ↓
-Sustained Paper Trading
+Sustained Evidence
   ↓
 Future Live-Trading Gate
 ```
