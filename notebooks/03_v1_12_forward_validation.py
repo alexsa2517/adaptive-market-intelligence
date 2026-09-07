@@ -2,20 +2,8 @@
 
 PROVE BEFORE TRADE
 
-This runner uses the locked W6 model and locked parameters. It must not
-retrain on forward observations or tune parameters from forward outcomes.
-
-Expected workflow:
-1. Load historical OHLCV through the latest available date.
-2. Rebuild Feature Set C using historical + newly available OHLCV so rolling
-   features are available for the newest observations.
-3. Train the locked W6 model only on 2021-07-23 through 2024-11-03.
-4. Generate probabilities/signals for observations after 2026-09-04.
-5. Append observations to data/forward/v1_12_forward_monitor.csv.
-6. Evaluate a signal only after its next-day close becomes available.
-
-This file is intentionally a Python runner rather than a notebook artifact so
-that the methodology remains reproducible outside Colab.
+Uses the locked W6 model and locked parameters. Forward observations are
+never used for retraining or parameter tuning.
 """
 
 from pathlib import Path
@@ -23,7 +11,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from xgboost import XGBClassifier
 
 from src.forward_validation import (
     LOCKED_FEE,
@@ -31,7 +18,12 @@ from src.forward_validation import (
     LOCKED_RULE_VERSION,
     LOCKED_SLIPPAGE,
     LOCKED_THRESHOLD,
+    LOCKED_TRAIN_END,
+    LOCKED_TRAIN_START,
     LOCKED_VOL_THRESHOLD,
+    append_forward_log,
+    build_locked_w6_model,
+    forward_integrity_check,
 )
 
 FEATURES_C = [
@@ -42,14 +34,15 @@ FEATURES_C = [
 ]
 
 FORWARD_START = pd.Timestamp("2026-09-05")
-TRAIN_START = pd.Timestamp("2021-07-23")
-TRAIN_END = pd.Timestamp("2024-11-03")
+FORWARD_LOG = Path("data/forward/v1_12_forward_monitor.csv")
 
 
 def load_market_data(start="2018-01-01", end=None):
     df = yf.download(
         "BTC-USD", start=start, end=end, auto_adjust=False, progress=False
     )
+    if df.empty:
+        raise RuntimeError("No BTC-USD market data returned.")
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
     return df[["Open", "High", "Low", "Close", "Volume"]].dropna().sort_index()
@@ -85,6 +78,12 @@ def make_features_c(df):
     out["target_next_day_up"] = np.where(
         future_close.isna(), np.nan, (future_close > close).astype(int)
     )
+    out["trend_50"] = close / sma50 - 1
+    out["high_vol"] = out["volatility_20d"] >= LOCKED_VOL_THRESHOLD
+    out["trend_regime"] = np.select(
+        [out["trend_50"] > 0.05, out["trend_50"] < -0.05],
+        ["Bull", "Bear"], default="Sideways"
+    )
     return out
 
 
@@ -92,35 +91,30 @@ def main():
     market = load_market_data(end="2026-09-08")
     features = make_features_c(market)
 
-    train = features.loc[TRAIN_START:TRAIN_END].dropna(
+    train = features.loc[LOCKED_TRAIN_START:LOCKED_TRAIN_END].dropna(
         subset=FEATURES_C + ["target_next_day_up"]
     )
     if len(train) != 1200:
-        raise RuntimeError(f"Locked training window expected 1200 rows, got {len(train)}")
+        raise RuntimeError(
+            f"Locked training window expected 1200 rows, got {len(train)}"
+        )
 
-    model = XGBClassifier(
-        n_estimators=300, max_depth=4, learning_rate=0.03,
-        subsample=0.8, colsample_bytree=0.8,
-        objective="binary:logistic", eval_metric="logloss",
-        random_state=42, n_jobs=4,
-    )
-    model.fit(train[FEATURES_C], train["target_next_day_up"].astype(int))
+    model = build_locked_w6_model(train, FEATURES_C)
 
-    forward = features.loc[FORWARD_START:].copy()
-    forward = forward.dropna(subset=FEATURES_C)
+    forward = features.loc[FORWARD_START:].dropna(subset=FEATURES_C).copy()
+    if forward.empty:
+        raise RuntimeError("No forward observations available.")
+
     forward["prob_up"] = model.predict_proba(forward[FEATURES_C])[:, 1]
-    forward["trend_50"] = forward["Close"] / forward["Close"].rolling(50).mean() - 1
-    forward["high_vol"] = forward["volatility_20"] >= LOCKED_VOL_THRESHOLD
-    forward["trend_regime"] = np.select(
-        [forward["trend_50"] > 0.05, forward["trend_50"] < -0.05],
-        ["Bull", "Bear"], default="Sideways"
-    )
-    forward["baseline_signal"] = (forward["prob_up"] >= LOCKED_THRESHOLD).astype(int)
+    forward["baseline_signal"] = (
+        forward["prob_up"] >= LOCKED_THRESHOLD
+    ).astype(int)
     forward["regime_filter"] = (
         (forward["trend_regime"] == "Bull") | forward["high_vol"]
     )
     forward["signal"] = (
-        forward["baseline_signal"].astype(bool) & forward["regime_filter"]
+        forward["baseline_signal"].astype(bool)
+        & forward["regime_filter"]
     ).astype(int)
     forward["model_version"] = LOCKED_MODEL_VERSION
     forward["threshold"] = LOCKED_THRESHOLD
@@ -136,8 +130,16 @@ def main():
         "slippage_per_side", "rule",
     ]
     result = forward[cols].reset_index().rename(columns={"index": "Date"})
-    print(result)
+    log = append_forward_log(result.set_index("Date"), FORWARD_LOG)
+
+    integrity = forward_integrity_check(log)
+    if not all(integrity.values()):
+        raise RuntimeError(f"Forward integrity check failed: {integrity}")
+
+    print(result.to_string(index=False))
     print(f"Signals: {int(result['signal'].sum())}")
+    print(f"Forward observations stored: {len(log)}")
+    print(f"Integrity: {integrity}")
 
 
 if __name__ == "__main__":
