@@ -1,0 +1,35 @@
+name: V2 Automated Variable Discovery
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run V2 discovery
+        run: python notebooks/05_v2_automated_variable_discovery.py
+
+      - name: Commit research reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/v2/
+          git diff --cached --quiet || git commit -m "Update V2 variable discovery reports"
+          git push
