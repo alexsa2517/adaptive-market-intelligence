@@ -1,0 +1,36 @@
+name: V1.12 Daily Forward Validation
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run after the daily BTC-USD candle is expected to be available.
+    - cron: "15 2 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  forward-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run locked forward validation
+        run: python notebooks/03_v1_12_forward_validation.py
+
+      - name: Commit forward monitor if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/forward/v1_12_forward_monitor.csv
+          git diff --cached --quiet || git commit -m "Update V1.12 forward monitor"
+          git push
