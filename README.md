@@ -8,6 +8,14 @@ An evidence-first market intelligence and forecasting system. The project is des
 
 For the consolidated project context, known limitations, experiment-record template, and prioritized improvement gates, see the [Project Knowledge Base](docs/PROJECT_KNOWLEDGE_BASE.md). It documents the current evidence and next steps without replacing or modifying the locked V1.12 research configuration.
 
+Before training on a CSV dataset, run the OHLCV structural audit:
+
+```bash
+python scripts/audit_ohlcv.py path/to/data.csv --expected-interval 1D
+```
+
+The interval check is optional; use the actual candle interval for your data. A PASS only clears the implemented structural checks and is not proof of predictive performance or profitability. The audit has not yet been run against the local `bitkub_bot/data.csv` file.
+
 ## Current Research Status — V1.12 Forward Validation
 
 The current research candidate is an XGBoost-based daily BTC direction model using Feature Set C and a locked Moderate market-regime filter. The final untouched holdout (2026-05-08 to 2026-09-04) produced +20.43% return, -1.97% max drawdown, Sharpe 3.09 and profit factor 5.61 under the base cost assumption. V1.11 robustness scored 6/7 and was classified **PROMISING — MORE VALIDATION REQUIRED**, not proven. The main weakness was a very small number of active holdout days and failed outlier robustness.
