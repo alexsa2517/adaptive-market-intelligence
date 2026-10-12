@@ -4,6 +4,10 @@
 
 An evidence-first market intelligence and forecasting system. The project is designed to test whether a measurable predictive edge exists before any real-money trading is allowed.
 
+## Project Knowledge Base
+
+For the consolidated project context, known limitations, experiment-record template, and prioritized improvement gates, see the [Project Knowledge Base](docs/PROJECT_KNOWLEDGE_BASE.md). It documents the current evidence and next steps without replacing or modifying the locked V1.12 research configuration.
+
 ## Current Research Status — V1.12 Forward Validation
 
 The current research candidate is an XGBoost-based daily BTC direction model using Feature Set C and a locked Moderate market-regime filter. The final untouched holdout (2026-05-08 to 2026-09-04) produced +20.43% return, -1.97% max drawdown, Sharpe 3.09 and profit factor 5.61 under the base cost assumption. V1.11 robustness scored 6/7 and was classified **PROMISING — MORE VALIDATION REQUIRED**, not proven. The main weakness was a very small number of active holdout days and failed outlier robustness.
