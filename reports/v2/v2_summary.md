@@ -20,18 +20,18 @@ WEAK=4
 REMOVE=895
 
 ## Top candidates
-- QQQ: macro_cpi_yoy lag 3 | status=INVESTIGATE | q=0.03205 | OOS Δ=0.7937% | positive=5/9
-- QQQ: macro_cpi_yoy lag 10 | status=INVESTIGATE | q=0.03205 | OOS Δ=0.8818% | positive=5/9
-- QQQ: macro_cpi_yoy lag 2 | status=KEEP | q=0.03205 | OOS Δ=0.7937% | positive=6/9
-- QQQ: macro_cpi_yoy lag 5 | status=KEEP | q=0.03205 | OOS Δ=0.5291% | positive=6/9
-- QQQ: macro_cpi_yoy lag 20 | status=KEEP | q=0.03205 | OOS Δ=0.7937% | positive=5/8
-- QQQ: macro_cpi_change_30d lag 20 | status=WEAK | q=0.03636 | OOS Δ=-0.0000% | positive=5/10
-- QQQ: macro_cpi_yoy lag 1 | status=WEAK | q=0.03205 | OOS Δ=0.3527% | positive=4/9
-- QQQ: macro_cpi_yoy lag 0 | status=WEAK | q=0.03205 | OOS Δ=0.1764% | positive=3/9
-- SPY: macro_cpi_yoy lag 0 | status=INVESTIGATE | q=0.03205 | OOS Δ=2.2928% | positive=5/9
-- SPY: macro_cpi_yoy lag 2 | status=INVESTIGATE | q=0.03205 | OOS Δ=1.9400% | positive=5/9
-- SPY: macro_cpi_yoy lag 3 | status=INVESTIGATE | q=0.03205 | OOS Δ=1.7637% | positive=5/9
-- SPY: macro_cpi_yoy lag 20 | status=INVESTIGATE | q=0.03205 | OOS Δ=1.3889% | positive=4/8
-- SPY: macro_cpi_yoy lag 5 | status=KEEP | q=0.03205 | OOS Δ=1.6755% | positive=6/9
-- SPY: macro_cpi_yoy lag 10 | status=KEEP | q=0.03205 | OOS Δ=2.2046% | positive=6/9
-- SPY: macro_cpi_yoy lag 1 | status=WEAK | q=0.03205 | OOS Δ=1.8519% | positive=4/9
+- QQQ: macro_cpi_yoy lag 3 | status=INVESTIGATE | q=0.03529 | OOS Δ=0.7937% | positive=5/9
+- QQQ: macro_cpi_yoy lag 10 | status=INVESTIGATE | q=0.03529 | OOS Δ=0.8818% | positive=5/9
+- QQQ: macro_cpi_yoy lag 2 | status=KEEP | q=0.03529 | OOS Δ=0.7937% | positive=6/9
+- QQQ: macro_cpi_yoy lag 5 | status=KEEP | q=0.03529 | OOS Δ=0.5291% | positive=6/9
+- QQQ: macro_cpi_yoy lag 20 | status=KEEP | q=0.03529 | OOS Δ=0.7937% | positive=5/8
+- QQQ: macro_cpi_change_30d lag 20 | status=WEAK | q=0.04858 | OOS Δ=-0.0000% | positive=5/10
+- QQQ: macro_cpi_yoy lag 1 | status=WEAK | q=0.03529 | OOS Δ=0.3527% | positive=4/9
+- QQQ: macro_cpi_yoy lag 0 | status=WEAK | q=0.03529 | OOS Δ=0.1764% | positive=3/9
+- SPY: macro_cpi_yoy lag 0 | status=INVESTIGATE | q=0.03529 | OOS Δ=2.2928% | positive=5/9
+- SPY: macro_cpi_yoy lag 2 | status=INVESTIGATE | q=0.03529 | OOS Δ=1.9400% | positive=5/9
+- SPY: macro_cpi_yoy lag 3 | status=INVESTIGATE | q=0.03529 | OOS Δ=1.7637% | positive=5/9
+- SPY: macro_cpi_yoy lag 20 | status=INVESTIGATE | q=0.03529 | OOS Δ=1.3889% | positive=4/8
+- SPY: macro_cpi_yoy lag 5 | status=KEEP | q=0.03529 | OOS Δ=1.6755% | positive=6/9
+- SPY: macro_cpi_yoy lag 10 | status=KEEP | q=0.03529 | OOS Δ=2.2046% | positive=6/9
+- SPY: macro_cpi_yoy lag 1 | status=WEAK | q=0.03529 | OOS Δ=1.8519% | positive=4/9
